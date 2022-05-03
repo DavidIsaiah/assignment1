@@ -11,4 +11,20 @@ public class CountrySchema {
     private String code;
     @Expose
     private String capital;
+
+    public String getName() {
+        return name;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getCapital() {
+        return capital;
+    }
 }

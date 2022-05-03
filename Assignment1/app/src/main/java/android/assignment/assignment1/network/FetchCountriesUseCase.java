@@ -3,7 +3,7 @@ package android.assignment.assignment1.network;
 import android.assignment.assignment1.BaseObservable;
 import android.util.Log;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -12,11 +12,11 @@ import retrofit2.Response;
 public class FetchCountriesUseCase extends BaseObservable<FetchCountriesUseCase.Listener> {
 
     public interface Listener {
-        void onCountriesFetchSuccess(ArrayList<CountrySchema> countries);
+        void onCountriesFetchSuccess(List<CountrySchema> countries);
         void onCountriesFetchFailureNotFound();
         void onCountriesFetchFailureNetwork();
         void onCountriesFetchFailureAccessDenied();
-        void onCountriesFetchFailureServiceUnavailable();
+        void onCountriesFetchFailureServerError();
         void onCountriesFetchFailureUnknown();
     }
 
@@ -30,13 +30,13 @@ public class FetchCountriesUseCase extends BaseObservable<FetchCountriesUseCase.
 
     public void fetchCountriesAndNotify() {
         try {
-            mCountriesApi.getCountries().enqueue(new Callback<FetchCountriesResponse>() {
+            mCountriesApi.getCountries().enqueue(new Callback<List<CountrySchema>>() {
                 @Override
-                public void onResponse(Call<FetchCountriesResponse> call, Response<FetchCountriesResponse> response) {
+                public void onResponse(Call<List<CountrySchema>> call, Response<List<CountrySchema>> response) {
                     Log.d(TAG, "fetchCountriesAndNotify 2.1 response.isSuccessful()=" + response.isSuccessful());
                     if (response.isSuccessful()) {
                         //Success!
-                        notifySuccess(response.body().getCountries());
+                        notifySuccess(response.body());
                     } else {
                         Log.d(TAG, "fetchCountriesAndNotify 2.2 response.code()=" + response.code());
                         //Error response
@@ -49,14 +49,14 @@ public class FetchCountriesUseCase extends BaseObservable<FetchCountriesUseCase.
                                 break;
                             case 500:
                             default:
-                            notifyFailureUnknown();
+                                notifyServerError();
                             break;
                         }
                     }
                 }
 
                 @Override
-                public void onFailure(Call<FetchCountriesResponse> call, Throwable t) {
+                public void onFailure(Call<List<CountrySchema>> call, Throwable t) {
                     Log.d(TAG, "fetchCountriesAndNotify 2.1 t=" + t);
                     notifyFailureNetwork();
                 }
@@ -78,7 +78,7 @@ public class FetchCountriesUseCase extends BaseObservable<FetchCountriesUseCase.
         }
     }
 
-    private void notifySuccess(ArrayList<CountrySchema> countries) {
+    private void notifySuccess(List<CountrySchema> countries) {
         Log.d(TAG, "FetchCountriesUseCase.notifySuccess 1 countries.size()="+countries.size());
         for(Listener listener : getListeners()) {
             listener.onCountriesFetchSuccess(countries);
@@ -96,6 +96,13 @@ public class FetchCountriesUseCase extends BaseObservable<FetchCountriesUseCase.
         Log.d(TAG, "FetchCountriesUseCase.notifyFailureNotFound ");
         for(Listener listener : getListeners()) {
             listener.onCountriesFetchFailureNotFound();
+        }
+    }
+
+    private void notifyServerError() {
+        Log.d(TAG, "FetchCountriesUseCase.notifyServerError ");
+        for(Listener listener : getListeners()) {
+            listener.onCountriesFetchFailureServerError();
         }
     }
 }
